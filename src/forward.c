@@ -159,12 +159,6 @@ static unsigned int search_servers(time_t now, struct all_addr **addrpp, unsigne
 	unsigned int domainlen = strlen(serv->domain);
 	char *matchstart = qdomain + namelen - domainlen;
 
-    // TODO 域名查询位置
-	printf("serv->domain: %s\n", serv->domain);
-	printf("qdomain: %s\n", qdomain);
-	printf("matchstart: %s\n", matchstart);
-	printf("SERV_HAS_RE_DOMAIN: %d\n", serv->flags & SERV_HAS_RE_DOMAIN);
-
 	if (serv->flags & SERV_HAS_RE_DOMAIN ?
 		dnsmasq_plus_hostname_is_match(serv->domain, qdomain) :
 		(namelen >= domainlen &&
