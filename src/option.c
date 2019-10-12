@@ -18,6 +18,7 @@
 #define SYSLOG_NAMES
 #include "dnsmasq.h"
 #include <setjmp.h>
+#include "../plus-src/libdnsmasqplus.h"
 
 static volatile int mem_recover = 0;
 static jmp_buf mem_jmp;
@@ -166,6 +167,7 @@ struct myoption {
 #define LOPT_UBUS          354
 #define LOPT_NAME_MATCH    355
 #define LOPT_CAA           356
+#define LOPT_RE_ADDRESS    357
  
 #ifdef HAVE_GETOPT_LONG
 static const struct option opts[] =  
@@ -209,6 +211,7 @@ static const struct myoption opts[] =
     { "rev-server", 1, 0, LOPT_REV_SERV },
     { "local", 1, 0, LOPT_LOCAL },
     { "address", 1, 0, 'A' },
+    { "re-address", 1, 0, LOPT_RE_ADDRESS },
     { "conf-file", 2, 0, 'C' },
     { "no-resolv", 0, 0, 'R' },
     { "expand-hosts", 0, 0, 'E' },
@@ -355,6 +358,7 @@ static struct {
 } usage[] = {
   { 'a', ARG_DUP, "<ipaddr>",  gettext_noop("Specify local address(es) to listen on."), NULL },
   { 'A', ARG_DUP, "/<domain>/<ipaddr>", gettext_noop("Return ipaddr for all hosts in specified domains."), NULL },
+  { LOPT_RE_ADDRESS, ARG_DUP, "/<domain>/<ipaddr>", gettext_noop("Return ipaddr for all hosts in regexp domains."), NULL },
   { 'b', OPT_BOGUSPRIV, NULL, gettext_noop("Fake reverse lookups for RFC1918 private address ranges."), NULL },
   { 'B', ARG_DUP, "<ipaddr>", gettext_noop("Treat ipaddr as NXDOMAIN (defeats Verisign wildcard)."), NULL }, 
   { 'c', ARG_ONE, "<integer>", gettext_noop("Specify the size of the cache in entries (defaults to %s)."), "$" },
@@ -2403,6 +2407,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
     case LOPT_LOCAL:     /*  --local */
     case 'A':            /*  --address */
     case LOPT_NO_REBIND: /*  --rebind-domain-ok */
+	case LOPT_RE_ADDRESS: /* --re-address */
       {
 	struct server *serv, *newlist = NULL;
 	
@@ -2430,6 +2435,14 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 		newlist = serv;
 		serv->domain = domain;
 		serv->flags = domain ? SERV_HAS_DOMAIN : SERV_FOR_NODOTS;
+
+		if (option == LOPT_RE_ADDRESS) {
+			serv->flags |= SERV_HAS_RE_DOMAIN;
+			if (!dnsmasq_plus_global_add_regex(domain)) {
+				die("regexp parse error", NULL, EC_BADCONF);
+			}
+		}
+
 		arg = end;
 		if (rebind)
 		  break;
@@ -2446,10 +2459,11 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 #endif
 	  }
 	
-	if (servers_only && option == 'S')
+	if (servers_only && option == 'S') {
 	  newlist->flags |= SERV_FROM_FILE;
-	
-	if (option == 'A')
+	}
+
+	  if (option == 'A' || option == LOPT_RE_ADDRESS)
 	  {
 	    newlist->flags |= SERV_LITERAL_ADDRESS;
 	    if (!(newlist->flags & SERV_TYPE))

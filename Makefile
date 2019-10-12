@@ -66,6 +66,8 @@ nettle_cflags = `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_DNSSEC $(PKG_CONFIG
 nettle_libs =   `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_DNSSEC $(PKG_CONFIG) --libs nettle hogweed`
 gmp_libs =      `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_DNSSEC NO_GMP --copy -lgmp`
 sunos_libs =    `if uname | grep SunOS >/dev/null 2>&1; then echo -lsocket -lnsl -lposix4; fi`
+dnsmasqplus_cflags = ""
+dnsmasqplus_libs = ""
 version =     -DVERSION='\"`$(top)/bld/get-version $(top)`\"'
 
 sum?=$(shell $(CC) -DDNSMASQ_COMPILE_OPTS $(COPTS) -E $(top)/$(SRC)/dnsmasq.h | ( md5sum 2>/dev/null || md5 ) | cut -f 1 -d ' ')
@@ -79,24 +81,26 @@ objs = cache.o rfc1035.o util.o option.o forward.o network.o \
        domain.o dnssec.o blockdata.o tables.o loop.o inotify.o \
        poll.o rrfilter.o edns0.o arp.o crypto.o dump.o ubus.o metrics.o
 
+
 hdrs = dnsmasq.h config.h dhcp-protocol.h dhcp6-protocol.h \
        dns-protocol.h radv-protocol.h ip6addr.h metrics.h
 
 all : $(BUILDDIR)
 	@cd $(BUILDDIR) && $(MAKE) \
  top="$(top)" \
- build_cflags="$(version) $(dbus_cflags) $(idn2_cflags) $(idn_cflags) $(ct_cflags) $(lua_cflags) $(nettle_cflags)" \
- build_libs="$(dbus_libs) $(idn2_libs) $(idn_libs) $(ct_libs) $(lua_libs) $(sunos_libs) $(nettle_libs) $(gmp_libs) $(ubus_libs)" \
+ build_cflags="$(version) $(dbus_cflags) $(idn2_cflags) $(idn_cflags) $(ct_cflags) $(lua_cflags) $(nettle_cflags) $(dnsmasqplus_cflags)" \
+ build_libs="$(dbus_libs) $(idn2_libs) $(idn_libs) $(ct_libs) $(lua_libs) $(sunos_libs) $(nettle_libs) $(gmp_libs) $(ubus_libs) $(dnsmasqplus_libs)" \
  -f $(top)/Makefile dnsmasq 
 
 mostly_clean :
 	rm -f $(BUILDDIR)/*.mo $(BUILDDIR)/*.pot 
-	rm -f $(BUILDDIR)/.copts_* $(BUILDDIR)/*.o $(BUILDDIR)/dnsmasq.a $(BUILDDIR)/dnsmasq
+	rm -f $(BUILDDIR)/.copts_* $(BUILDDIR)/*.o $(BUILDDIR)/*.a $(BUILDDIR)/dnsmasq.a $(BUILDDIR)/dnsmasq
 
 clean : mostly_clean
 	rm -f $(BUILDDIR)/dnsmasq_baseline
 	rm -f core */core
 	rm -f *~ contrib/*/*~ */*~
+	cargo clean
 
 install : all install-common
 
@@ -110,8 +114,8 @@ all-i18n : $(BUILDDIR)
 	@cd $(BUILDDIR) && $(MAKE) \
  top="$(top)" \
  i18n=-DLOCALEDIR=\'\"$(LOCALEDIR)\"\' \
- build_cflags="$(version) $(dbus_cflags) $(idn2_cflags) $(idn_cflags) $(ct_cflags) $(lua_cflags) $(nettle_cflags)" \
- build_libs="$(dbus_libs) $(idn2_libs) $(idn_libs) $(ct_libs) $(lua_libs) $(sunos_libs) $(nettle_libs) $(gmp_libs)"  \
+ build_cflags="$(version) $(dbus_cflags) $(idn2_cflags) $(idn_cflags) $(ct_cflags) $(lua_cflags) $(nettle_cflags) " \
+ build_libs="$(dbus_libs) $(idn2_libs) $(idn_libs) $(ct_libs) $(lua_libs) $(sunos_libs) $(nettle_libs) $(gmp_libs) $(dnsmasqplus_libs)"  \
  -f $(top)/Makefile dnsmasq
 	for f in `cd $(PO); echo *.po`; do \
 		cd $(top) && cd $(BUILDDIR) && $(MAKE) top="$(top)" -f $(top)/Makefile $${f%.po}.mo; \
@@ -149,19 +153,23 @@ bloatcheck : $(BUILDDIR)/dnsmasq_baseline mostly_clean all
 # rules below are targets in recursive makes with cwd=$(BUILDDIR)
 
 $(copts_conf): $(hdrs)
-	@rm -f *.o .copts_*
+	@rm -f *.o .copts_* *.a
 	@touch $@
 
 $(objs:.o=.c) $(hdrs):
 	ln -s $(top)/$(SRC)/$@ .
 
 $(objs): $(copts_conf) $(hdrs)
+ 
+liblibdnsmasqplus.a: ../plus-src/lib.rs
+	cargo build --release
+	ln -sf ../target/release/liblibdnsmasqplus.a
 
 .c.o:
 	$(CC) $(CFLAGS) $(COPTS) $(i18n) $(build_cflags) $(RPM_OPT_FLAGS) -c $<	
 
-dnsmasq : $(objs)
-	$(CC) $(LDFLAGS) -o $@ $(objs) $(build_libs) $(LIBS) 
+dnsmasq : $(objs) liblibdnsmasqplus.a
+	$(CC) $(LDFLAGS) -lpthread -ldl -o $@ $(objs) $(build_libs) $(LIBS) liblibdnsmasqplus.a
 
 dnsmasq.pot : $(objs:.o=.c) $(hdrs)
 	$(XGETTEXT) -d dnsmasq --foreign-user --omit-header --keyword=_ -o $@ -i $(objs:.o=.c)

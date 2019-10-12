@@ -15,6 +15,7 @@
 */
 
 #include "dnsmasq.h"
+#include "../plus-src/libdnsmasqplus.h"
 
 static struct frec *lookup_frec(unsigned short id, void *hash);
 static struct frec *lookup_frec_by_sender(unsigned short id,
@@ -157,9 +158,18 @@ static unsigned int search_servers(time_t now, struct all_addr **addrpp, unsigne
       {
 	unsigned int domainlen = strlen(serv->domain);
 	char *matchstart = qdomain + namelen - domainlen;
-	if (namelen >= domainlen &&
+
+    // TODO 域名查询位置
+	printf("serv->domain: %s\n", serv->domain);
+	printf("qdomain: %s\n", qdomain);
+	printf("matchstart: %s\n", matchstart);
+	printf("SERV_HAS_RE_DOMAIN: %d\n", serv->flags & SERV_HAS_RE_DOMAIN);
+
+	if (serv->flags & SERV_HAS_RE_DOMAIN ?
+		dnsmasq_plus_hostname_is_match(serv->domain, qdomain) :
+		(namelen >= domainlen &&
 	    hostname_isequal(matchstart, serv->domain) &&
-	    (domainlen == 0 || namelen == domainlen || *(matchstart-1) == '.' ))
+	    (domainlen == 0 || namelen == domainlen || *(matchstart-1) == '.' )))
 	  {
 	    if ((serv->flags & SERV_NO_REBIND) && norebind)	
 	      *norebind = 1;
