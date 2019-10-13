@@ -54,24 +54,12 @@ fn hostname_is_match(regex: *const c_void, query_domain: *const c_char) -> bool 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ffi::CString;
 
     #[test]
-    fn test_dnsmasq_plus_parse_regex_0() {
-        let regexp = r"^double-click\.net$";
-        let c_regexp = CString::new(regexp).unwrap();
-        assert_eq!(dnsmasq_plus_parse_regex(c_regexp.as_ptr()), 1);
-        assert_eq!(REGEXP_MAP.len(), 1);
-        assert_eq!((*REGEXP_MAP.get(&c_regexp).unwrap()).as_str(), regexp);
-    }
-
-    #[test]
-    fn test_global_add_regex_0() {
-        let regexp = r"??";
-        let c_regexp = CString::new(regexp).unwrap();
-        assert_eq!(parse_regex(c_regexp.as_ptr()), true);
-        assert_eq!(REGEXP_MAP.len(), 1);
-        assert_eq!((*REGEXP_MAP.get(&c_regexp).unwrap()).as_str(), regexp);
+    fn test_lib() {
+        let prt = dnsmasq_plus_parse_regex(CString::new(r"^double-click\.net$").unwrap().as_ptr());
+        assert_eq!(dnsmasq_plus_hostname_is_match(prt, CString::new(r"double-click.net").unwrap().as_ptr()), 1);
+        assert_eq!(dnsmasq_plus_hostname_is_match(prt, CString::new(r"unknow.net").unwrap().as_ptr()), 0);
     }
 }
-
-
