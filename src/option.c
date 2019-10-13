@@ -2438,9 +2438,11 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 
 		if (option == LOPT_RE_ADDRESS) {
 			serv->flags |= SERV_HAS_RE_DOMAIN;
-			if (!dnsmasq_plus_global_add_regex(domain)) {
+			void *regex = dnsmasq_plus_parse_regex(domain);
+			if (!regex) {
 				die("regexp parse error", NULL, EC_BADCONF);
 			}
+			serv->regex = regex;
 		}
 
 		arg = end;

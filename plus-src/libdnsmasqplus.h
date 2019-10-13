@@ -4,12 +4,12 @@
 /**
  * Parse and add regexp to global.
  */
-extern int dnsmasq_plus_global_add_regex(const char *regexp);
+extern void *dnsmasq_plus_parse_regex(const char *regexp);
 
 /**
  * Use regexp to match a domain.
  */
-extern int dnsmasq_plus_hostname_is_match(const char *regexp, const char *query_domain);
+extern int dnsmasq_plus_hostname_is_match(const char *regex, const char *query_domain);
 
 
 #endif

@@ -160,7 +160,7 @@ static unsigned int search_servers(time_t now, struct all_addr **addrpp, unsigne
 	char *matchstart = qdomain + namelen - domainlen;
 
 	if (serv->flags & SERV_HAS_RE_DOMAIN ?
-		dnsmasq_plus_hostname_is_match(serv->domain, qdomain) :
+		dnsmasq_plus_hostname_is_match(serv->regex, qdomain) :
 		(namelen >= domainlen &&
 	    hostname_isequal(matchstart, serv->domain) &&
 	    (domainlen == 0 || namelen == domainlen || *(matchstart-1) == '.' )))

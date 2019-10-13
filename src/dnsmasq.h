@@ -543,7 +543,8 @@ struct server {
   union mysockaddr addr, source_addr;
   char interface[IF_NAMESIZE+1];
   struct serverfd *sfd; 
-  char *domain; /* set if this server only handles a domain. */ 
+  char *domain; /* set if this server only handles a domain. */
+  void *regex;
   int flags, tcpfd, edns_pktsz;
   time_t pktsz_reduced;
   unsigned int queries, failed_queries;
