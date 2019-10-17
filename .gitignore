@@ -15,7 +15,8 @@ debian/trees/
 debian/build/
 /.vscode
 /.idea
-
+/dnsmasq.conf
+/*.dnsmasq.conf
 
 #Added by cargo
 #

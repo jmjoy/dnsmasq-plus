@@ -156,7 +156,7 @@ static unsigned int search_servers(time_t now, struct all_addr **addrpp, unsigne
       }
     else if (serv->flags & SERV_HAS_DOMAIN)
       {
-	unsigned int domainlen = strlen(serv->domain);
+	unsigned int domainlen = (serv->flags & SERV_HAS_RE_DOMAIN) ? 0 : strlen(serv->domain);
 	char *matchstart = qdomain + namelen - domainlen;
 
 	if (serv->flags & SERV_HAS_RE_DOMAIN ?

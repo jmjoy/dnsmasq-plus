@@ -15,8 +15,14 @@ fn test_dnsmasq() {
         assert!(test_dig_result("me.localhost.local", "127.0.0.1"));
         assert!(test_dig_result("test.local", "127.0.0.2"));
         assert!(test_dig_result("test.test.local", "127.0.0.2"));
-        assert!(test_dig_result("test.net", "127.0.0.3"));
+        assert!(test_dig_result("test.net", "127.0.0.4"));
         assert!(test_dig_result("test.test.net", "127.0.0.4"));
+        assert!(test_dig_result("a.test.xxx.net", "127.0.0.10"));
+        assert!(test_dig_result("test.xxx.net", "127.0.0.10"));
+        assert!(test_dig_result("test1.xxx.net", "127.0.0.11"));
+        assert!(test_dig_result("what.the.hell", "127.0.0.12"));
+        assert!(test_dig_result("a.top", "127.0.0.14"));
+        assert!(test_dig_result("a.a.top", "127.0.0.14"));
     });
     kill_dnsmasq(child);
     match result {

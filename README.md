@@ -11,6 +11,12 @@ Use `rust` ffi.
 - gcc
 - rust
 
+# Install
+
+```bash
+make
+```
+
 ## Plus
 
 - `re-address`
@@ -23,3 +29,5 @@ Now you can use `re-address` to match a regexp of domain, just as:
 re-address=/^double-click\.net$/127.0.0.1
 re-address=/^.*$/127.0.0.2
 ```
+
+**Notice that `address` or `server` is always privileged than `re-address` when matching a query domain, and above `re-address` is privileged than below.**
