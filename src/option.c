@@ -18,7 +18,7 @@
 #define SYSLOG_NAMES
 #include "dnsmasq.h"
 #include <setjmp.h>
-#include "../plus-src/libdnsmasqplus.h"
+#include <dnsmasqplus.h>
 
 static volatile int mem_recover = 0;
 static jmp_buf mem_jmp;
@@ -2438,7 +2438,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 
 		if (option == LOPT_RE_ADDRESS) {
 			serv->flags |= SERV_HAS_RE_DOMAIN;
-			void *regex = dnsmasq_plus_parse_regex(domain);
+			const void *regex = dnsmasq_plus_parse_regex(domain);
 			if (!regex) {
 				die("regexp parse error", NULL, EC_BADCONF);
 			}

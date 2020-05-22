@@ -544,7 +544,7 @@ struct server {
   char interface[IF_NAMESIZE+1];
   struct serverfd *sfd; 
   char *domain; /* set if this server only handles a domain. */
-  void *regex;
+  const void *regex;
   int flags, tcpfd, edns_pktsz;
   time_t pktsz_reduced;
   unsigned int queries, failed_queries;

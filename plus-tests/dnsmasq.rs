@@ -1,7 +1,9 @@
-use std::process::{Command, Child};
-use std::thread;
-use std::time::Duration;
-use std::panic::{catch_unwind, resume_unwind};
+use std::{
+    panic::{catch_unwind, resume_unwind},
+    process::{Child, Command},
+    thread,
+    time::Duration,
+};
 
 const PORT: &'static str = "5354";
 
@@ -26,14 +28,15 @@ fn test_dnsmasq() {
     });
     kill_dnsmasq(child);
     match result {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => resume_unwind(e),
     }
 }
 
 fn start_dnsmasq(config_file: &str) -> Child {
     let mut dnsmasq = Command::new("./src/dnsmasq");
-    dnsmasq.arg("-d")
+    dnsmasq
+        .arg("-d")
         .arg("-C")
         .arg(config_file)
         .arg("-p")

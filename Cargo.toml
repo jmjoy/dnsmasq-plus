@@ -1,11 +1,11 @@
 [package]
-name = "libdnsmasqplus"
+name = "dnsmasqplus"
 version = "0.1.0"
-authors = ["__JM_Joy__ <918734043@qq.com>"]
+authors = ["jmjoy <918734043@qq.com>"]
 edition = "2018"
+build = "plus-src/build.rs"
 
 [lib]
-name = "libdnsmasqplus"
 path = "plus-src/lib.rs"
 crate-type = ["staticlib"]
 
@@ -16,3 +16,5 @@ path = "plus-tests/dnsmasq.rs"
 [dependencies]
 regex = "1.3.1"
 
+[build-dependencies]
+cbindgen = "0.14.2"

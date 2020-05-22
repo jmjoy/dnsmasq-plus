@@ -159,17 +159,16 @@ $(copts_conf): $(hdrs)
 $(objs:.o=.c) $(hdrs):
 	ln -s $(top)/$(SRC)/$@ .
 
-$(objs): $(copts_conf) $(hdrs)
+$(objs): $(copts_conf) $(hdrs) $(top)/target/release/libdnsmasqplus.a
  
-liblibdnsmasqplus.a: ../plus-src/lib.rs
+$(top)/target/release/libdnsmasqplus.a: $(top)/plus-src/lib.rs $(top)/plus-src/build.rs
 	cargo build --release
-	ln -sf ../target/release/liblibdnsmasqplus.a
 
 .c.o:
-	$(CC) $(CFLAGS) $(COPTS) $(i18n) $(build_cflags) $(RPM_OPT_FLAGS) -c $<	
+	$(CC) $(CFLAGS) -I$(top)/target $(COPTS) $(i18n) $(build_cflags) $(RPM_OPT_FLAGS) -c $<
 
-dnsmasq : $(objs) liblibdnsmasqplus.a
-	$(CC) $(LDFLAGS) -lpthread -ldl -o $@ $(objs) $(build_libs) $(LIBS) liblibdnsmasqplus.a
+dnsmasq : $(objs) $(top)/target/release/libdnsmasqplus.a
+	$(CC) $(LDFLAGS) -I$(top)/target -lpthread -ldl -o $@ $(objs) $(build_libs) $(LIBS) $(top)/target/release/libdnsmasqplus.a
 
 dnsmasq.pot : $(objs:.o=.c) $(hdrs)
 	$(XGETTEXT) -d dnsmasq --foreign-user --omit-header --keyword=_ -o $@ -i $(objs:.o=.c)

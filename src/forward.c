@@ -15,7 +15,7 @@
 */
 
 #include "dnsmasq.h"
-#include "../plus-src/libdnsmasqplus.h"
+#include <dnsmasqplus.h>
 
 static struct frec *lookup_frec(unsigned short id, void *hash);
 static struct frec *lookup_frec_by_sender(unsigned short id,
@@ -2427,8 +2427,3 @@ static unsigned short get_id(void)
   
   return ret;
 }
-
-
-
-
-
