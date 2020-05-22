@@ -14,6 +14,7 @@ name = "dnsmasq"
 path = "plus-tests/dnsmasq.rs"
 
 [dependencies]
+anyhow = "1.0.31"
 regex = "1.3.1"
 
 [build-dependencies]

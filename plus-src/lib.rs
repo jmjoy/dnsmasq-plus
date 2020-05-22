@@ -1,31 +1,27 @@
 use regex::Regex;
 use std::{
     ffi::CStr,
+    mem::forget,
     os::raw::{c_char, c_void},
-    panic::catch_unwind,
     ptr::null,
 };
 
 /// Parse and add regexp to global.
 #[no_mangle]
 pub extern "C" fn dnsmasq_plus_parse_regex(regexp: *const c_char) -> *const c_void {
-    let result = catch_unwind(|| parse_regex(regexp));
-    match result {
+    match parse_regex(regexp) {
         Ok(regex) => Box::into_raw(Box::new(regex)) as *const c_void,
         Err(e) => {
-            let s = e
-                .downcast::<String>()
-                .unwrap_or_else(|_| Box::new("<unknown>".to_string()));
-            eprintln!("dnsmasq: there is an error when calling the function `dnsmasq_plus_parse_regex`: {}", s);
+            eprintln!("dnsmasq: there is an error when calling the function `dnsmasq_plus_parse_regex`: {:?}", e);
             null()
         }
     }
 }
 
-fn parse_regex(regexp: *const c_char) -> Regex {
+fn parse_regex(regexp: *const c_char) -> anyhow::Result<Regex> {
     let regex = unsafe { CStr::from_ptr(regexp) };
-    let regex = regex.to_str().expect("convert to utf8 str");
-    Regex::new(regex).expect("parse to regex")
+    let regex = regex.to_str()?;
+    Ok(Regex::new(regex)?)
 }
 
 /// Use regexp to match a domain.
@@ -34,26 +30,22 @@ pub extern "C" fn dnsmasq_plus_hostname_is_match(
     regex: *const c_void,
     query_domain: *const c_char,
 ) -> i32 {
-    let result = catch_unwind(|| hostname_is_match(regex, query_domain));
-    match result {
+    match hostname_is_match(regex, query_domain) {
         Ok(b) => b as i32,
         Err(e) => {
-            let s = e
-                .downcast::<String>()
-                .unwrap_or_else(|_| Box::new("<unknown>".to_string()));
-            eprintln!("dnsmasq: there is an error when calling the function `dnsmasq_plus_hostname_is_match`: {}", s);
+            eprintln!("dnsmasq: there is an error when calling the function `dnsmasq_plus_hostname_is_match`: {:?}", e);
             0
         }
     }
 }
 
-fn hostname_is_match(regex: *const c_void, query_domain: *const c_char) -> bool {
+fn hostname_is_match(regex: *const c_void, query_domain: *const c_char) -> anyhow::Result<bool> {
     let regex: Box<Regex> = unsafe { Box::from_raw(regex as *mut Regex) };
     let query_domain = unsafe { CStr::from_ptr(query_domain) };
-    let query_domain = query_domain.to_str().expect("convert to utf8 str");
+    let query_domain = query_domain.to_str()?;
     let b = regex.is_match(query_domain);
-    let _ = Box::into_raw(regex);
-    b
+    forget(regex);
+    Ok(b)
 }
 
 #[cfg(test)]

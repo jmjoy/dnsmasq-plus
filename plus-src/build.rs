@@ -2,7 +2,7 @@ use cbindgen::{Builder, Language};
 use std::{env, error::Error, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("cargo:rerun-if-changed=cbindgen.toml");
+    println!("cargo:rerun-if-changed=plus-src/lib.rs");
 
     let crate_dir = env::var("CARGO_MANIFEST_DIR")?;
     let output_h = PathBuf::new()
