@@ -168,6 +168,7 @@ struct myoption {
 #define LOPT_NAME_MATCH    355
 #define LOPT_CAA           356
 #define LOPT_RE_ADDRESS    357
+#define LOPT_RE_SERVER     358
  
 #ifdef HAVE_GETOPT_LONG
 static const struct option opts[] =  
@@ -208,6 +209,7 @@ static const struct myoption opts[] =
     { "pid-file", 2, 0, 'x' },
     { "strict-order", 0, 0, 'o' },
     { "server", 1, 0, 'S' },
+    { "re-server", 1, 0, LOPT_RE_SERVER },
     { "rev-server", 1, 0, LOPT_REV_SERV },
     { "local", 1, 0, LOPT_LOCAL },
     { "address", 1, 0, 'A' },
@@ -406,6 +408,7 @@ static struct {
   { 'r', ARG_DUP, "<path>", gettext_noop("Specify path to resolv.conf (defaults to %s)."), RESOLVFILE }, 
   { LOPT_SERVERS_FILE, ARG_ONE, "<path>", gettext_noop("Specify path to file with server= options"), NULL },
   { 'S', ARG_DUP, "/<domain>/<ipaddr>", gettext_noop("Specify address(es) of upstream servers with optional domains."), NULL },
+  { LOPT_RE_SERVER, ARG_DUP, "/<domain>/<ipaddr>", gettext_noop("Specify regexp address(es) of upstream servers with optional domains."), NULL },
   { LOPT_REV_SERV, ARG_DUP, "<addr>/<prefix>,<ipaddr>", gettext_noop("Specify address of upstream servers for reverse address queries"), NULL },
   { LOPT_LOCAL, ARG_DUP, "/<domain>/", gettext_noop("Never forward queries to specified domains."), NULL },
   { 's', ARG_DUP, "<domain>[,<range>]", gettext_noop("Specify the domain to be assigned in DHCP leases."), NULL },
@@ -2408,6 +2411,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
     case 'A':            /*  --address */
     case LOPT_NO_REBIND: /*  --rebind-domain-ok */
 	case LOPT_RE_ADDRESS: /* --re-address */
+	case LOPT_RE_SERVER: /* --re-server */
       {
 	struct server *serv, *newlist = NULL;
 	
@@ -2436,7 +2440,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 		serv->domain = domain;
 		serv->flags = domain ? SERV_HAS_DOMAIN : SERV_FOR_NODOTS;
 
-		if (option == LOPT_RE_ADDRESS) {
+		if (option == LOPT_RE_ADDRESS || option == LOPT_RE_SERVER) {
 			serv->flags |= SERV_HAS_RE_DOMAIN;
 			const void *regex = dnsmasq_plus_parse_regex(domain);
 			if (!regex) {
@@ -2461,7 +2465,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 #endif
 	  }
 	
-	if (servers_only && option == 'S') {
+	if (servers_only && (option == 'S' || option == LOPT_RE_SERVER)) {
 	  newlist->flags |= SERV_FROM_FILE;
 	}
 
