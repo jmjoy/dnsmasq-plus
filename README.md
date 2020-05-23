@@ -24,8 +24,8 @@ The bin is `src/dnsmasq`.
 
 ## Plus
 
-- `re-address`
-- `re-server`
+- [re-address](#re-address)
+- [re-server](#re-server)
 
 ### re-address
 
