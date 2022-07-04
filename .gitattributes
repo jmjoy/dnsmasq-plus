@@ -1,1 +1,2 @@
 VERSION export-subst
+*.c linguist-detectable=false

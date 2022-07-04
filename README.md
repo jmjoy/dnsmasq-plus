@@ -1,3 +1,7 @@
+# ⚠️ Deprecated
+
+Prefer to use coredns with [template plugin](https://coredns.io/plugins/template/), which supports matching domain by regex.
+
 # dnsmasq-plus
 
 Official website of `dnsmasq`: http://www.thekelleys.org.uk/dnsmasq/doc.html
